@@ -10,40 +10,46 @@ $('a').click(function() {
 function Clock(gmtOffset, bigCity) {
 	this.bigCity = bigCity;
 	this.daypart = ""; //placeholder for AM/PM	
-	this.offsetter = function(offset) {
-		//function to create a UTC variable to deal with timezone offsets that aren't integers, which will affect both hours and minutes
-		var coreTime = new Date();
-		//get the current UTC time (in ms) by taking the current local time and adding back the local gmt offset
-		var utc = coreTime.getTime()+(coreTime.getTimezoneOffset() * 60000);
-		var now = new Date(utc + (3600000*offset));
-		return now;
-		}
-	this.showSeconds = function() {
-		var currentSeconds = this.offsetter(gmtOffset).getSeconds();
-		if (currentSeconds < 10) {
-			currentSeconds = "0"+currentSeconds;
-		}
-		return currentSeconds;
-	}
-	this.showMinutes = function() {
-		var currentMinutes = this.offsetter(gmtOffset).getMinutes();
-		if (currentMinutes < 10) {
-			currentMinutes = "0"+currentMinutes;
-		}
-		return currentMinutes;
-	}
-	this.showHours = function() {
-		var currentHours = this.offsetter(gmtOffset).getHours();
-		if (currentHours > 12) {
-			currentHours = currentHours - 12;
-			this.daypart = "PM";
-		} else {
-			this.daypart = "AM";
-		}
-		return currentHours;
-	}
+	this.gmtOffset = gmtOffset;
 };
 
+//methods added to Clock.prototype rather than Clock constructor to save memory
+
+Clock.prototype.offsetter = function(offset) {
+	//function to create a UTC variable to deal with timezone offsets that aren't integers, which will affect both hours and minutes
+	var coreTime = new Date();
+	//get the current UTC time (in ms) by taking the current local time and adding back the local gmt offset
+	var utc = coreTime.getTime()+(coreTime.getTimezoneOffset() * 60000);
+	var now = new Date(utc + (3600000*offset));
+	return now;
+};
+
+Clock.prototype.showSeconds = function() {
+	var currentSeconds = this.offsetter(this.gmtOffset).getSeconds();
+	if (currentSeconds < 10) {
+		currentSeconds = "0"+currentSeconds;
+	}
+	return currentSeconds;
+};
+
+Clock.prototype.showMinutes = function() {
+	var currentMinutes = this.offsetter(this.gmtOffset).getMinutes();
+	if (currentMinutes < 10) {
+		currentMinutes = "0"+currentMinutes;
+	}
+	return currentMinutes;
+};
+
+Clock.prototype.showHours = function() {
+	var currentHours = this.offsetter(this.gmtOffset).getHours();
+	if (currentHours > 12) {
+		currentHours = currentHours - 12;
+		this.daypart = "PM";
+	} else {
+		this.daypart = "AM";
+	}
+	return currentHours;
+};
 
 //create some new time-zone objects that inherit from Clock
 var greenwichClock = new Clock(0, "GMT");
@@ -54,7 +60,6 @@ var losangelesClock = new Clock (-8, "Los Angeles");
 
 //create an array that holds all the clocks that inherit from clock, including the new objects created by the clockMaker function below
 var cities = [greenwichClock, torontoClock, tokyoClock, berlinClock, losangelesClock];
-
 
 //function for displaying clock data into the DOM
 var clocksDisplay = function() {
@@ -94,6 +99,7 @@ var clockMaker = function(){
 		//creates a new object that inherits from Clock	
 		var o = new Clock($gmtOffsetInput, $cityNameInput);
 		//adds it to the cities array for later display via incrementing
+		//unshift places the new item at the first position at the array, for easier recognition that something happened
 		cities.unshift(o);
 		return o;	
 	};	
@@ -104,6 +110,8 @@ $("#submitCity").click(function(){
 	clockMaker(); //creates a new clock object
 	$(".city").remove(); //clears the current <li class="city"> tags
 	clocksDisplay(); //rebuilds the display
+	$("#addCity").text(""); //resets for both inout fields to clear values
+	$("#addOffset").text("");
 })
 
 
