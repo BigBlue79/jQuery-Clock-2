@@ -1,0 +1,57 @@
+body {
+	background: lightgreen;
+	font-family: helvetica, arial, sans-serif;
+}
+
+h1 {
+	font-size: 60px;
+	text-shadow: 3px 3px 8px white;
+}
+
+#container {
+	width: 960px;
+	margin:0 auto;
+}
+
+#form {
+	background: LemonChiffon;
+	width: 40%;
+	float: left;
+	box-shadow: 5px 5px 5px black;
+}
+
+#innerform {
+	margin: 10px;
+}
+
+label {
+	font-size: 20px;
+	margin-top: 10px;
+}
+
+#clockslist {
+	width: 60%;
+	float: left;
+}
+
+ul {
+	margin: 0;
+	padding: 0;
+}
+
+#cities {
+	padding-left: 25px;
+}
+
+.city {
+	font-family: monospace;
+	font-size: 30px;
+	background: white;
+	border-radius: 10px;
+	padding: 10px;
+	margin: 0 auto;
+	margin-bottom: 30px;
+	list-style-type: none;
+	text-align: right;
+	box-shadow: 5px 5px 5px black;
+}
