@@ -1,7 +1,7 @@
 $(document).ready(function($) {
 
 //opens the only link in new window
-$('a').click(function() {
+$("a").click(function() {
 	$(this).attr('target', '_blank');
 }); 
 
@@ -110,8 +110,8 @@ $("#submitCity").click(function(){
 	clockMaker(); //creates a new clock object
 	$(".city").remove(); //clears the current <li class="city"> tags
 	clocksDisplay(); //rebuilds the display
-	$("#addCity").text(""); //resets for both inout fields to clear values
-	$("#addOffset").text("");
+	//$("#addCity").text(""); //resets for both input fields to clear values
+	//$("#addOffset").text("");
 })
 
 

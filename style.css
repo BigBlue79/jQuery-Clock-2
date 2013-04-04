@@ -4,8 +4,15 @@ body {
 }
 
 h1 {
-	font-size: 60px;
-	text-shadow: 3px 3px 8px white;
+	font-size: 72px;
+	text-shadow: 3px 3px 0px lightgreen, 6px 6px 0px white;	
+	margin: 0;
+}
+
+h3 {
+	font-size: 40px;
+	margin: 0;
+	text-shadow: 3px 3px 0px lightgreen, 5px 5px 0px white;	
 }
 
 #container {
