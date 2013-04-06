@@ -1,6 +1,6 @@
 $(document).ready(function($) {
 
-//opens the only link in new window
+//opens the only link on this page in new window
 $('a').click(function() {
 	$(this).attr('target', '_blank');
 }); 
@@ -64,12 +64,9 @@ var cities = [greenwichClock, torontoClock, tokyoClock, berlinClock, losangelesC
 //function for displaying clock data into the DOM
 var clocksDisplay = function() {
 	cities.forEach(function(city) {
-		$("#cities").append("<li class='city'>"+city.bigCity+ " | " +
-			city.showHours()+ ":" + 
-			city.showMinutes()+ ":" + 
-			city.showSeconds()+ "  " +
-			city.daypart+
-		"</li>");
+		var cityId = city.bigCity;
+		$("#cities").append("<li class='city' title='Click and drag to re-order the clocks' id='"+cityId+"'><i class='icon-remove-sign></i></li>");
+		$( "#cities" ).sortable();
 	});
 };
 
@@ -77,18 +74,25 @@ clocksDisplay();//initial call to set up container <li> tags
 	
 //function for updating the clock data displayed in the DOM
 var clocksUpdate = function() {
-	$(".city").each(function(index, value) { 
-    	$(this).text(cities[index].bigCity+ " | " +
-			cities[index].showHours()+ ":" + 
-			cities[index].showMinutes()+ ":" + 
-			cities[index].showSeconds()+ "  " + 
-			cities[index].daypart)
+	var $cityCluster = $(".city");
+	//checks the id of the selected elements against the bigCity property of the cities array elements
+	$cityCluster.each(function(index) {
+		for (var i=0; i<cities.length; i++) {
+			if ($(this).attr("id") === cities[i].bigCity) {
+				$(this).html(cities[i].bigCity+ " | " +
+					cities[i].showHours()+ ":" + 
+					cities[i].showMinutes()+ ":" + 
+					cities[i].showSeconds()+ "  " + 
+					cities[i].daypart+
+					"<i class='icon-remove-sign'></i>")		
+			}
+		}
     });
 };
 
 setInterval(clocksUpdate, 1000); //keeps time in sync by re-checking the time value every second
 
-//function for generating new clock objects requiring a city name and a gmt offset as arguments
+//function for generating new clock objects using <input> fields to provide a city name and gmt offset
 var clockMaker = function(){
 	$cityNameInput = $("#addCity").val();
 	$gmtOffsetInput = $("#addOffset").val();
@@ -108,12 +112,18 @@ var clockMaker = function(){
 //on clicking "submit", adds new clock objects into the display
 $("#submitCity").click(function(){
 	clockMaker(); //creates a new clock object
-	$(".city").remove(); //clears the current <li class="city"> tags
-	clocksDisplay(); //rebuilds the display
-	$("#addCity").text(""); //resets for both inout fields to clear values
-	$("#addOffset").text("");
+	var cityId = cities[0].bigCity;
+	//prepends a <li> tag with the appropriate cityID for the new clock object at the front of the array
+	$("#cities").prepend($("<li class='city' id='"+cityId+"'></li>"))
+	//sets the text for the new li (as eq(o) of the containing element) relative to the first item in the cities array
+	//matching by ID is not required for the initial population of the time, only for the once-a-second time update
+	$(".city").eq(0).text(cities[0].bigCity+ " | " +
+			cities[0].showHours()+ ":" + 
+			cities[0].showMinutes()+ ":" + 
+			cities[0].showSeconds()+ "  " + 
+			cities[0].daypart);
+	$("#addCity").val(""); //resets for both inout fields to clear values
+	$("#addOffset").val("");
 })
-
-
 
 });
