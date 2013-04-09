@@ -35,7 +35,13 @@ h3 {
 
 label {
 	font-size: 20px;
-	margin-top: 10px;
+	margin-top: 10px auto;
+}
+
+#submitCity {
+	font-size: 24px;
+	
+
 }
 
 #clockslist {
@@ -46,6 +52,10 @@ label {
 ul {
 	margin: 0;
 	padding: 0;
+}
+
+li {
+	list-style-type: none;
 }
 
 #cities {
@@ -59,18 +69,18 @@ ul {
 	border-radius: 10px;
 	padding: 10px;
 	margin: 0 auto;
-	margin-bottom: 30px;
-	list-style-type: none;
+	margin-bottom: 30px;	
 	text-align: right;
 	box-shadow: 5px 5px 5px black;
 }
 
 .icon-remove-sign {
-	opacity: .5;
+	opacity: .3;
 	margin-left: 10px;
 
 }
 
 .icon-remove-sign:hover{
+	opacity: .8;
 	color: red;
 }

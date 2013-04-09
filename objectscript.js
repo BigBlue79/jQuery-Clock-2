@@ -55,17 +55,19 @@ Clock.prototype.showHours = function() {
 var greenwichClock = new Clock(0, "GMT");
 var torontoClock = new Clock(-4, "Toronto");
 var tokyoClock = new Clock (9, "Tokyo");
-var berlinClock = new Clock (1, "Berlin");
+var grandmaClock = new Clock (1, "Grandma");
 var losangelesClock = new Clock (-8, "Los Angeles");
+var clientClock = new Clock (-5, "Big Client")
 
 //create an array that holds all the clocks that inherit from clock, including the new objects created by the clockMaker function below
-var cities = [greenwichClock, torontoClock, tokyoClock, berlinClock, losangelesClock];
+var citiesArray = [greenwichClock, torontoClock, tokyoClock, losangelesClock, grandmaClock, clientClock];
 
 //function for displaying clock data into the DOM
 var clocksDisplay = function() {
-	cities.forEach(function(city) {
+	citiesArray.forEach(function(city) {
 		var cityId = city.bigCity;
-		$("#cities").append("<li class='city' title='Click and drag to re-order the clocks' id='"+cityId+"'><i class='icon-remove-sign></i></li>");
+		$("#cities").append("<li class='city' id='"+cityId+"'>Loading...<i class='icon-remove-sign' /></li>");
+		//The "Loading..." is for the clocksUpdate function, which requires a non-empty text node to initialize
 		$( "#cities" ).sortable();
 	});
 };
@@ -77,34 +79,44 @@ var clocksUpdate = function() {
 	var $cityCluster = $(".city");
 	//checks the id of the selected elements against the bigCity property of the cities array elements
 	$cityCluster.each(function(index) {
-		for (var i=0; i<cities.length; i++) {
-			if ($(this).attr("id") === cities[i].bigCity) {
-				$(this).html(cities[i].bigCity+ " | " +
-					cities[i].showHours()+ ":" + 
-					cities[i].showMinutes()+ ":" + 
-					cities[i].showSeconds()+ "  " + 
-					cities[i].daypart+
-					"<i class='icon-remove-sign'></i>")		
+		for (var i=0; i<citiesArray.length; i++) {
+			if ($(this).attr("id") === citiesArray[i].bigCity) {
+				//contents are filtererd to modify the <li> tage text but not nested elements
+				$(this).contents().filter(function() {
+    					return this.nodeType == 3;   //Filtering by text node
+					}).replaceWith(citiesArray[i].bigCity+ " | " +			
+					citiesArray[i].showHours()+ ":" + 
+					citiesArray[i].showMinutes()+ ":" + 
+					citiesArray[i].showSeconds()+ "  " + 
+					citiesArray[i].daypart)		
 			}
 		}
     });
 };
 
 setInterval(clocksUpdate, 1000); //keeps time in sync by re-checking the time value every second
+//for clocksUpdate, I worked out the whole process of changing text without disturbing any nested elements as a solution for not being able to click on the "remove" icon that was being refreshed every second.  As it turns out, I also couldn't click on any *new* icons added post-initial DOM load. Using .on("click") helped with the new icon problem, and probably would have helped with the initial problem, too.
+
 
 //function for generating new clock objects using <input> fields to provide a city name and gmt offset
 var clockMaker = function(){
-	$cityNameInput = $("#addCity").val();
-	$gmtOffsetInput = $("#addOffset").val();
+	var $cityNameInput = $("#addCity").val();
+	var $gmtOffsetInput;
+	if ($("#addOffsetManual").val() != "") {
+		$gmtOffsetInput = $("#addOffsetManual").val();
+	} else {
+		$gmtOffsetInput = $("#addOffsetDropdown option:selected").val();
+	}
 	//checks if the value passed to the offset text field is outside of the acceptable range, or not a number
 	if (isNaN($gmtOffsetInput) || $gmtOffsetInput < -12 || $gmtOffsetInput >12) {
 		alert("GMT Offset must be a number between -12 and +12")
+		throw new Error("GMT wrong type or out of range!");
 	} else {
 		//creates a new object that inherits from Clock	
 		var o = new Clock($gmtOffsetInput, $cityNameInput);
 		//adds it to the cities array for later display via incrementing
 		//unshift places the new item at the first position at the array, for easier recognition that something happened
-		cities.unshift(o);
+		citiesArray.unshift(o);
 		return o;	
 	};	
 };
@@ -112,18 +124,27 @@ var clockMaker = function(){
 //on clicking "submit", adds new clock objects into the display
 $("#submitCity").click(function(){
 	clockMaker(); //creates a new clock object
-	var cityId = cities[0].bigCity;
-	//prepends a <li> tag with the appropriate cityID for the new clock object at the front of the array
-	$("#cities").prepend($("<li class='city' id='"+cityId+"'></li>"))
+	var cityId = citiesArray[0].bigCity;
+	//prepends a <li> tag with the appropriate cityID for the new clock object now at the front of the array
+	$("#cities").prepend($("<li class='city' id='"+cityId+"'>Loading...<i class='icon-remove-sign' /></li>"))
 	//sets the text for the new li (as eq(o) of the containing element) relative to the first item in the cities array
 	//matching by ID is not required for the initial population of the time, only for the once-a-second time update
-	$(".city").eq(0).text(cities[0].bigCity+ " | " +
-			cities[0].showHours()+ ":" + 
-			cities[0].showMinutes()+ ":" + 
-			cities[0].showSeconds()+ "  " + 
-			cities[0].daypart);
-	$("#addCity").val(""); //resets for both inout fields to clear values
-	$("#addOffset").val("");
+	$(".city").eq(0).contents().filter(function(){
+		return this.nodeType == 3; //same filtering method as earlier
+		}).replaceWith(citiesArray[0].bigCity+ " | " +
+			citiesArray[0].showHours()+ ":" + 
+			citiesArray[0].showMinutes()+ ":" + 
+			citiesArray[0].showSeconds()+ "  " + 
+			citiesArray[0].daypart);
+	$("#addCity").val(""); //resets for both input fields to clear values
+	$("#addOffsetManual").val("");
 })
+
+
+//function to remove clocks from the display when clicking the "remove" icon
+$("#cities").on("click", ".icon-remove-sign", function(event){
+  	$(this).parent(".city").remove();
+});
+
 
 });
