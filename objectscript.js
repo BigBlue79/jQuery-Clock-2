@@ -129,7 +129,7 @@ $("#submitCity").click(function(){
 	$("#cities").prepend($("<li class='city' id='"+cityId+"'>Loading...<i class='icon-remove-sign' /></li>"))
 	//sets the text for the new li (as eq(o) of the containing element) relative to the first item in the cities array
 	//matching by ID is not required for the initial population of the time, only for the once-a-second time update
-	$(".city").eq(0).contents().filter(function(){
+	$(".city :first").contents().filter(function(){
 		return this.nodeType == 3; //same filtering method as earlier
 		}).replaceWith(citiesArray[0].bigCity+ " | " +
 			citiesArray[0].showHours()+ ":" + 
