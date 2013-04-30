@@ -7,10 +7,12 @@ $('a').click(function() {
 
 //create a Clock object that holds a Date object, with the current time set as a method instead of a static variable
 
-function Clock(gmtOffset, bigCity) {
+function Clock(gmtOffset, bigCity, refID) {
 	this.bigCity = bigCity;
 	this.daypart = ""; //placeholder for AM/PM	
 	this.gmtOffset = gmtOffset;
+	this.refID = refID;
+	//refID is an identifier that is different from (but created by) the city name, which allows for separate uses of city names *with spaces* for display and easy-to recognize refIDs for reference
 };
 
 //methods added to Clock.prototype rather than Clock constructor to save memory
@@ -52,12 +54,12 @@ Clock.prototype.showHours = function() {
 };
 
 //create some new time-zone objects that inherit from Clock
-var greenwichClock = new Clock(0, "GMT");
-var torontoClock = new Clock(-4, "Toronto");
-var tokyoClock = new Clock (9, "Tokyo");
-var grandmaClock = new Clock (1, "Grandma");
-var losangelesClock = new Clock (-8, "Los Angeles");
-var clientClock = new Clock (-5, "Big Client")
+var greenwichClock = new Clock(0, "GMT", "gmt");
+var torontoClock = new Clock(-4, "Toronto", "toronto");
+var tokyoClock = new Clock (9, "Tokyo", "tokyo");
+var grandmaClock = new Clock (1, "Grandma's House", "grandmasHouse");
+var losangelesClock = new Clock (-8, "Los Angeles", "losAngeles");
+var clientClock = new Clock (-5, "Big Client", "bigClient")
 
 //create an array that holds all the clocks that inherit from clock, including the new objects created by the clockMaker function below
 var citiesArray = [greenwichClock, torontoClock, tokyoClock, losangelesClock, grandmaClock, clientClock];
@@ -65,7 +67,7 @@ var citiesArray = [greenwichClock, torontoClock, tokyoClock, losangelesClock, gr
 //function for displaying clock data into the DOM
 var clocksDisplay = function() {
 	citiesArray.forEach(function(city) {
-		var cityId = city.bigCity;
+		var cityId = city.refID;
 		$("#cities").append("<li class='city' id='"+cityId+"'>Loading...<i class='icon-remove-sign' /></li>");
 		//The "Loading..." is for the clocksUpdate function, which requires a non-empty text node to initialize
 		$( "#cities" ).sortable();
@@ -76,27 +78,39 @@ clocksDisplay();//initial call to set up container <li> tags
 	
 //function for updating the clock data displayed in the DOM
 var clocksUpdate = function() {
-	var $cityCluster = $(".city");
-	//checks the id of the selected elements against the bigCity property of the cities array elements
-	$cityCluster.each(function(index) {
-		for (var i=0; i<citiesArray.length; i++) {
-			if ($(this).attr("id") === citiesArray[i].bigCity) {
-				//contents are filtererd to modify the <li> tage text but not nested elements
-				$(this).contents().filter(function() {
-    					return this.nodeType == 3;   //Filtering by text node
-					}).replaceWith(citiesArray[i].bigCity+ " | " +			
-					citiesArray[i].showHours()+ ":" + 
-					citiesArray[i].showMinutes()+ ":" + 
-					citiesArray[i].showSeconds()+ "  " + 
-					citiesArray[i].daypart)		
-			}
-		}
-    });
+	citiesArray.forEach(function(city) {
+		var reference = city.refID;
+		//saves the value of the "bigCity" property of each object in the array as "name" 
+		$("#"+reference).contents().filter(function() {
+   			return this.nodeType == 3;   //Filtering by text node
+				}).replaceWith(city.bigCity+ " | " +			
+					city.showHours()+ ":" + 
+					city.showMinutes()+ ":" + 
+					city.showSeconds()+ "  " + 
+					city.daypart)		
+		});
 };
 
-setInterval(clocksUpdate, 1000); //keeps time in sync by re-checking the time value every second
-//for clocksUpdate, I worked out the whole process of changing text without disturbing any nested elements as a solution for not being able to click on the "remove" icon that was being refreshed every second.  As it turns out, I also couldn't click on any *new* icons added post-initial DOM load. Using .on("click") helped with the new icon problem, and probably would have helped with the initial problem, too.
+//old clocksUpdate method for comparison
+	// var $cityCluster = $(".city");
+	// //checks the id of the selected elements against the bigCity property of the cities array elements
+	// $cityCluster.each(function(index) {
+	// 	for (var i=0; i<citiesArray.length; i++) {
+	// 		if ($(this).attr("id") === citiesArray[i].bigCity) {
+	// 			//contents are filtererd to modify the <li> tage text but not nested elements
+	// 			$(this).contents().filter(function() {
+ //    					return this.nodeType == 3;   //Filtering by text node
+	// 				}).replaceWith(citiesArray[i].bigCity+ " | " +			
+	// 				citiesArray[i].showHours()+ ":" + 
+	// 				citiesArray[i].showMinutes()+ ":" + 
+	// 				citiesArray[i].showSeconds()+ "  " + 
+	// 				citiesArray[i].daypart)		
+	// 		}
+	// 	}
+ //    });
+// };
 
+setInterval(clocksUpdate, 1000); //keeps time in sync by re-checking the time value every second
 
 //function for generating new clock objects using <input> fields to provide a city name and gmt offset
 var clockMaker = function(){
@@ -107,13 +121,16 @@ var clockMaker = function(){
 	} else {
 		$gmtOffsetInput = $("#addOffsetDropdown option:selected").val();
 	}
+	var tempId = $cityNameInput.replace(/[^a-zA-Z0-9]/g,"")//regex to strip punctuation and spaces 
+	var cityRefId = tempId.charAt(0).toLowerCase()+tempId.slice(1); //sets first character to lower case, resulting in regular camelCase ID formats for multi-word city names
+
 	//checks if the value passed to the offset text field is outside of the acceptable range, or not a number
 	if (isNaN($gmtOffsetInput) || $gmtOffsetInput < -12 || $gmtOffsetInput >12) {
 		alert("GMT Offset must be a number between -12 and +12")
 		throw new Error("GMT wrong type or out of range!");
 	} else {
 		//creates a new object that inherits from Clock	
-		var o = new Clock($gmtOffsetInput, $cityNameInput);
+		var o = new Clock($gmtOffsetInput, $cityNameInput, cityRefId);
 		//adds it to the cities array for later display via incrementing
 		//unshift places the new item at the first position at the array, for easier recognition that something happened
 		citiesArray.unshift(o);
@@ -124,7 +141,7 @@ var clockMaker = function(){
 //on clicking "submit", adds new clock objects into the display
 $("#submitCity").click(function(){
 	clockMaker(); //creates a new clock object
-	var cityId = citiesArray[0].bigCity;
+	var cityId = citiesArray[0].refID;
 	//prepends a <li> tag with the appropriate cityID for the new clock object now at the front of the array
 	$("#cities").prepend($("<li class='city' id='"+cityId+"'>Loading...<i class='icon-remove-sign' /></li>"))
 	//sets the text for the new li (as eq(o) of the containing element) relative to the first item in the cities array
