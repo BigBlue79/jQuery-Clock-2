@@ -7,12 +7,13 @@ $('a').click(function() {
 
 //create a Clock object that holds a Date object, with the current time set as a method instead of a static variable
 
-function Clock(gmtOffset, bigCity, refID) {
+function Clock(gmtOffset, bigCity) {
 	this.bigCity = bigCity;
 	this.daypart = ""; //placeholder for AM/PM	
 	this.gmtOffset = gmtOffset;
-	this.refID = refID;
-	//refID is an identifier that is different from (but created by) the city name, which allows for separate uses of city names *with spaces* for display and easy-to recognize refIDs for reference
+	var tempId = bigCity.replace(/[^a-zA-Z0-9]/g,"")//regex to strip punctuation and spaces 
+	this.refID = tempId.charAt(0).toLowerCase()+tempId.slice(1); 
+	//refID is built from provided city names, but it formats it for use as an HTML ID by stripping punctuation and spaces, and then making it camel-case
 };
 
 //methods added to Clock.prototype rather than Clock constructor to save memory
@@ -54,12 +55,12 @@ Clock.prototype.showHours = function() {
 };
 
 //create some new time-zone objects that inherit from Clock
-var greenwichClock = new Clock(0, "GMT", "gmt");
-var torontoClock = new Clock(-4, "Toronto", "toronto");
-var tokyoClock = new Clock (9, "Tokyo", "tokyo");
-var grandmaClock = new Clock (1, "Grandma's House", "grandmasHouse");
-var losangelesClock = new Clock (-8, "Los Angeles", "losAngeles");
-var clientClock = new Clock (-5, "Big Client", "bigClient")
+var greenwichClock = new Clock(0, "GMT");
+var torontoClock = new Clock(-4, "Toronto");
+var tokyoClock = new Clock (9, "Tokyo");
+var grandmaClock = new Clock (1, "Grandma's House");
+var losangelesClock = new Clock (-8, "Los Angeles");
+var clientClock = new Clock (-5, "Big Client");
 
 //create an array that holds all the clocks that inherit from clock, including the new objects created by the clockMaker function below
 var citiesArray = [greenwichClock, torontoClock, tokyoClock, losangelesClock, grandmaClock, clientClock];
@@ -121,16 +122,13 @@ var clockMaker = function(){
 	} else {
 		$gmtOffsetInput = $("#addOffsetDropdown option:selected").val();
 	}
-	var tempId = $cityNameInput.replace(/[^a-zA-Z0-9]/g,"")//regex to strip punctuation and spaces 
-	var cityRefId = tempId.charAt(0).toLowerCase()+tempId.slice(1); //sets first character to lower case, resulting in regular camelCase ID formats for multi-word city names
-
 	//checks if the value passed to the offset text field is outside of the acceptable range, or not a number
 	if (isNaN($gmtOffsetInput) || $gmtOffsetInput < -12 || $gmtOffsetInput >12) {
 		alert("GMT Offset must be a number between -12 and +12")
 		throw new Error("GMT wrong type or out of range!");
 	} else {
 		//creates a new object that inherits from Clock	
-		var o = new Clock($gmtOffsetInput, $cityNameInput, cityRefId);
+		var o = new Clock($gmtOffsetInput, $cityNameInput);
 		//adds it to the cities array for later display via incrementing
 		//unshift places the new item at the first position at the array, for easier recognition that something happened
 		citiesArray.unshift(o);
